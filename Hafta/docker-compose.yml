@@ -1,0 +1,58 @@
+# version: "3"
+services:
+  db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: maheshsai2000/hafta_project_database:hafta_project-database
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8
+
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 3s
+      retries: 5
+      start_period: 30s
+
+    volumes:
+      - db-data:/var/lib/mysql
+    # networks:
+    #   - backnet
+    environment:
+      - MYSQL_DATABASE=hafta
+      - MYSQL_ROOT_PASSWORD=root
+      
+    expose:
+      - 3306
+      - 33060
+
+  backend:
+    image: maheshsai2000/hafta_project_backend:hafta_project-backend
+
+    ports:
+      - 8000:8000
+
+    # networks:
+    #   - backnet
+    #   - frontnet
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: maheshsai2000/hafta_project_frontend:hafta_project_frontend
+
+    ports:
+      - 3000:3000
+
+    depends_on:
+      - backend
+
+    # networks:
+    #   - frontnet
+
+volumes:
+  db-data:
+
+# networks:
+#   backnet:
+#   frontnet:
